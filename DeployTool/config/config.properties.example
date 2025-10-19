@@ -1,0 +1,33 @@
+# 状態管理ファイル
+state.file=.deploy-state.json
+
+# アップロード対象ファイル
+files.count=1
+
+# ファイル1の設定
+files.0.local_path=example.txt
+files.0.remote_path=uploads/example.txt
+files.0.enabled=true
+
+# ストレージプロバイダー設定
+storage.provider=cloudflare-r2
+
+# Cloudflare R2設定
+# 環境変数から読み込まれます: CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+storage.cloudflare_r2.account_id=${CLOUDFLARE_ACCOUNT_ID}
+storage.cloudflare_r2.access_key_id=${R2_ACCESS_KEY_ID}
+storage.cloudflare_r2.secret_access_key=${R2_SECRET_ACCESS_KEY}
+storage.cloudflare_r2.bucket_name=my-bucket
+storage.cloudflare_r2.endpoint=https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com
+
+# ログ設定
+logging.level=INFO
+logging.file=logs/deploy-tool.log
+logging.console=true
+
+# リトライ設定
+retry.max_attempts=3
+retry.initial_delay_ms=1000
+retry.max_delay_ms=10000
+retry.multiplier=2.0
+
