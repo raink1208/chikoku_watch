@@ -59,12 +59,27 @@ class YouTubeApiClient(private val config: ApiConfig) {
         pageToken: String? = null
     ): Pair<List<String>, String?> {
         return try {
-            val request = youtube.search()
-                .list(listOf("id"))
-                .setChannelId(channelId)
-                .setType(listOf("video"))
-                .setEventType(eventType)
-                .setOrder("date")
+            // まずチャンネルのアップロードプレイリストIDを取得
+            val channelRequest = youtube.channels()
+                .list(listOf("contentDetails"))
+                .setId(listOf(channelId))
+                .setKey(config.apiKey)
+            
+            config.addQuotaUsage(1)
+            val channelResponse = channelRequest.execute()
+            
+            val uploadsPlaylistId = channelResponse.items?.firstOrNull()
+                ?.contentDetails?.relatedPlaylists?.uploads
+            
+            if (uploadsPlaylistId == null) {
+                logger.error("Could not find uploads playlist for channel: $channelId")
+                return Pair(emptyList(), null)
+            }
+            
+            // playlistItemsを使用して動画を取得
+            val request = youtube.playlistItems()
+                .list(listOf("contentDetails"))
+                .setPlaylistId(uploadsPlaylistId)
                 .setMaxResults(maxResults.toLong())
                 .setKey(config.apiKey)
 
@@ -72,17 +87,17 @@ class YouTubeApiClient(private val config: ApiConfig) {
                 request.pageToken = pageToken
             }
 
-            config.addQuotaUsage(100)
+            config.addQuotaUsage(1)
             val response = request.execute()
 
-            val videoIds = response.items?.mapNotNull { it.id?.videoId } ?: emptyList()
+            val videoIds = response.items?.mapNotNull { it.contentDetails?.videoId } ?: emptyList()
             val nextPageToken = response.nextPageToken
 
-            logger.info("Found ${videoIds.size} videos, nextPageToken: $nextPageToken")
+            logger.info("Found ${videoIds.size} videos from playlist, nextPageToken: $nextPageToken")
 
             Pair(videoIds, nextPageToken)
         } catch (e: Exception) {
-            logger.error("Failed to search videos: ${e.message}", e)
+            logger.error("Failed to get videos from playlist: ${e.message}", e)
             handleApiError(e)
             Pair(emptyList(), null)
         }
@@ -115,6 +130,13 @@ class YouTubeApiClient(private val config: ApiConfig) {
                     val scheduledStartTime = liveDetails.scheduledStartTime?.toString()
                     val actualStartTime = liveDetails.actualStartTime?.toString()
                     val actualEndTime = liveDetails.actualEndTime?.toString()
+
+                    // actualEndTimeがない場合（配信が終了していない場合）はスキップ
+                    if (actualEndTime == null) {
+                        logger.debug("Video ${video.id} has no actual end time (stream not finished), skipping")
+                        return@mapNotNull null
+                    }
+
                     val delaySeconds = DateTimeUtil.calculateDelaySeconds(scheduledStartTime, actualStartTime)
                     val streamDurationSeconds = DateTimeUtil.calculateStreamDurationSeconds(actualStartTime, actualEndTime)
 
