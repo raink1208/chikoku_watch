@@ -46,14 +46,6 @@ class TextReportExporter {
                 appendLine("最小遅刻時間: ${DateTimeUtil.formatDuration(report.statistics.minDelaySeconds)}")
                 appendLine("中央値: ${DateTimeUtil.formatDuration(report.statistics.medianDelaySeconds.toLong())}")
                 appendLine()
-
-                appendLine("【遅刻分類】")
-                appendLine("定刻開始 (0秒): ${report.statistics.onTimeStreams}回")
-                appendLine("軽微な遅刻 (1-300秒/5分以内): ${report.statistics.minorDelayStreams}回")
-                appendLine("通常遅刻 (301-900秒/5-15分): ${report.statistics.normalDelayStreams}回")
-                appendLine("大幅遅刻 (901-1800秒/15-30分): ${report.statistics.majorDelayStreams}回")
-                appendLine("深刻な遅刻 (1801秒以上/30分超): ${report.statistics.severeDelayStreams}回")
-                appendLine()
             }
 
             // 詳細分析

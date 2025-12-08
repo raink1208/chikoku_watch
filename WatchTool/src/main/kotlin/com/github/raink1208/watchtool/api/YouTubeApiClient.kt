@@ -143,7 +143,6 @@ class YouTubeApiClient(private val config: ApiConfig) {
                     Video(
                         videoId = video.id,
                         title = snippet?.title ?: "",
-                        description = snippet?.description ?: "",
                         publishedAt = snippet?.publishedAt?.toString() ?: "",
                         scheduledStartTime = scheduledStartTime,
                         actualStartTime = actualStartTime,

@@ -30,13 +30,6 @@ class StatisticsCalculator {
         val videosWithDuration = analyzableVideos.filter { it.streamDurationSeconds > 0 }
         val durations = videosWithDuration.map { it.streamDurationSeconds }
 
-        // 分類別カウント（秒単位）
-        val onTime = analyzableVideos.count { it.delaySeconds == 0L }
-        val minorDelay = analyzableVideos.count { it.delaySeconds in 1L..300L }  // 1-300秒（5分）
-        val normalDelay = analyzableVideos.count { it.delaySeconds in 301L..900L }  // 301-900秒（5-15分）
-        val majorDelay = analyzableVideos.count { it.delaySeconds in 901L..1800L }  // 901-1800秒（15-30分）
-        val severeDelay = analyzableVideos.count { it.delaySeconds > 1800L }  // 1801秒以上（30分超）
-
         val statistics = Statistics(
             totalStreams = analyzableVideos.size,
             delayedStreams = delayedVideos.size,
@@ -49,11 +42,6 @@ class StatisticsCalculator {
             maxDelaySeconds = delays.maxOrNull() ?: 0,
             minDelaySeconds = delays.minOrNull() ?: 0,
             medianDelaySeconds = calculateMedian(delays),
-            onTimeStreams = onTime,
-            minorDelayStreams = minorDelay,
-            normalDelayStreams = normalDelay,
-            majorDelayStreams = majorDelay,
-            severeDelayStreams = severeDelay,
             totalStreamDurationSeconds = durations.sum(),
             averageStreamDurationSeconds = if (durations.isNotEmpty()) durations.average() else 0.0,
             maxStreamDurationSeconds = durations.maxOrNull() ?: 0,
