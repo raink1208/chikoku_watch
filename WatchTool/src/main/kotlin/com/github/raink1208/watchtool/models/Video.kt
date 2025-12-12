@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 data class Video(
     val videoId: String,
     val title: String,
-    val description: String = "",
     val publishedAt: String,
     val scheduledStartTime: String? = null,
     val actualStartTime: String? = null,
