@@ -10,9 +10,7 @@ class VideoFetcher(private val apiClient: YouTubeApiClient) {
 
     suspend fun fetchAllVideos(
         channelId: String,
-        maxVideos: Int = Int.MAX_VALUE,
-        startDate: String? = null,
-        endDate: String? = null
+        maxVideos: Int = Int.MAX_VALUE
     ): List<Video> {
         val allVideos = mutableListOf<Video>()
         var pageToken: String? = null
@@ -36,10 +34,9 @@ class VideoFetcher(private val apiClient: YouTubeApiClient) {
 
                 // 動画の詳細を取得（50件ずつ）
                 val videos = apiClient.getVideoDetails(videoIds)
-                val filteredVideos = filterVideosByDate(videos, startDate, endDate)
 
-                allVideos.addAll(filteredVideos)
-                logger.info("Fetched ${filteredVideos.size} videos (total: ${allVideos.size})")
+                allVideos.addAll(videos)
+                logger.info("Fetched ${videos.size} videos (total: ${allVideos.size})")
 
                 pageToken = nextPageToken
                 retryCount = 0
@@ -75,23 +72,6 @@ class VideoFetcher(private val apiClient: YouTubeApiClient) {
         logger.info("Total API quota used: ${apiClient.getUsedQuota()}")
 
         return allVideos.take(maxVideos)
-    }
-
-    private fun filterVideosByDate(
-        videos: List<Video>,
-        startDate: String?,
-        endDate: String?
-    ): List<Video> {
-        if (startDate == null && endDate == null) return videos
-
-        return videos.filter { video ->
-            val publishedAt = video.publishedAt
-
-            val afterStart = startDate == null || publishedAt >= startDate
-            val beforeEnd = endDate == null || publishedAt <= endDate
-
-            afterStart && beforeEnd
-        }
     }
 }
 

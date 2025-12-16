@@ -74,9 +74,7 @@ class WatchToolCommand : CliktCommand(
             val fetcher = VideoFetcher(apiClient)
             val videos = fetcher.fetchAllVideos(
                 channelId = channelId,
-                maxVideos = limit,
-                startDate = startDate,
-                endDate = endDate
+                maxVideos = limit
             )
 
             if (videos.isEmpty()) {
