@@ -10,7 +10,6 @@ class VideoFetcher(private val apiClient: YouTubeApiClient) {
 
     suspend fun fetchAllVideos(
         channelId: String,
-        eventType: String = "completed",
         maxVideos: Int = Int.MAX_VALUE,
         startDate: String? = null,
         endDate: String? = null

@@ -1,7 +1,6 @@
 package com.github.raink1208.watchtool.export
 
 import com.github.raink1208.watchtool.models.StreamReport
-import com.github.raink1208.watchtool.utils.DateTimeUtil
 import java.io.File
 
 class CsvExporter {
@@ -12,8 +11,8 @@ class CsvExporter {
 
             // データ行
             report.streams.forEach { video ->
-                val scheduledTime = video.scheduledStartTime?.let { DateTimeUtil.toLocalDateTime(it) } ?: ""
-                val actualTime = video.actualStartTime?.let { DateTimeUtil.toLocalDateTime(it) } ?: ""
+                val scheduledTime = video.scheduledStartTime ?: ""
+                val actualTime = video.actualStartTime ?: ""
 
                 appendLine(
                     listOf(

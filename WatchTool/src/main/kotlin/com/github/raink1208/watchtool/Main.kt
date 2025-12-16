@@ -74,7 +74,6 @@ class WatchToolCommand : CliktCommand(
             val fetcher = VideoFetcher(apiClient)
             val videos = fetcher.fetchAllVideos(
                 channelId = channelId,
-                eventType = eventType,
                 maxVideos = limit,
                 startDate = startDate,
                 endDate = endDate
