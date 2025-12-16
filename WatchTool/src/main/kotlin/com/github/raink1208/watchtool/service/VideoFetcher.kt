@@ -26,7 +26,6 @@ class VideoFetcher(private val apiClient: YouTubeApiClient) {
             try {
                 val (videoIds, nextPageToken) = apiClient.searchVideos(
                     channelId = channelId,
-                    eventType = eventType,
                     maxResults = 50,
                     pageToken = pageToken
                 )

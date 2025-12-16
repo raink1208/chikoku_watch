@@ -54,7 +54,6 @@ class YouTubeApiClient(private val config: ApiConfig) {
 
     suspend fun searchVideos(
         channelId: String,
-        eventType: String = "completed",
         maxResults: Int = 50,
         pageToken: String? = null
     ): Pair<List<String>, String?> {
