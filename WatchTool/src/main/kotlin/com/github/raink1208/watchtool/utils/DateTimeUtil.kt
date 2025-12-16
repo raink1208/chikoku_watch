@@ -6,7 +6,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object DateTimeUtil {
-    private val formatter = DateTimeFormatter.ISO_INSTANT
+    private val jstZoneId = ZoneId.of("Asia/Tokyo")
+    private val jstFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(jstZoneId)
 
     fun parseInstant(dateTimeString: String?): Instant? {
         return try {
@@ -33,13 +34,13 @@ object DateTimeUtil {
     }
 
     fun formatDateTime(instant: Instant): String {
-        return formatter.format(instant)
+        return jstFormatter.format(instant)
     }
 
     fun toLocalDateTime(dateTimeString: String): String {
         return try {
             val instant = Instant.parse(dateTimeString)
-            val localDateTime = instant.atZone(ZoneId.systemDefault())
+            val localDateTime = instant.atZone(jstZoneId)
             localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         } catch (e: Exception) {
             dateTimeString

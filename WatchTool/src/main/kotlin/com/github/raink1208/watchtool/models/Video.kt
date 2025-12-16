@@ -10,7 +10,6 @@ data class Video(
     val scheduledStartTime: String? = null,
     val actualStartTime: String? = null,
     val actualEndTime: String? = null,
-    val concurrentViewers: Long? = null,
     val viewCount: Long = 0,
     val likeCount: Long = 0,
     val commentCount: Long = 0,

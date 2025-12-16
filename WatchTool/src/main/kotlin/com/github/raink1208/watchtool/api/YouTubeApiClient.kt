@@ -126,27 +126,34 @@ class YouTubeApiClient(private val config: ApiConfig) {
                         return@mapNotNull null
                     }
 
-                    val scheduledStartTime = liveDetails.scheduledStartTime?.toString()
-                    val actualStartTime = liveDetails.actualStartTime?.toString()
-                    val actualEndTime = liveDetails.actualEndTime?.toString()
+                    // UTC日時を取得
+                    val scheduledStartTimeUtc = liveDetails.scheduledStartTime?.toString()
+                    val actualStartTimeUtc = liveDetails.actualStartTime?.toString()
+                    val actualEndTimeUtc = liveDetails.actualEndTime?.toString()
 
                     // actualEndTimeがない場合（配信が終了していない場合）はスキップ
-                    if (actualEndTime == null) {
+                    if (actualEndTimeUtc == null) {
                         logger.debug("Video ${video.id} has no actual end time (stream not finished), skipping")
                         return@mapNotNull null
                     }
 
-                    val delaySeconds = DateTimeUtil.calculateDelaySeconds(scheduledStartTime, actualStartTime)
-                    val streamDurationSeconds = DateTimeUtil.calculateStreamDurationSeconds(actualStartTime, actualEndTime)
+                    // 遅刻時間と配信時間の計算（UTC時刻で計算）
+                    val delaySeconds = DateTimeUtil.calculateDelaySeconds(scheduledStartTimeUtc, actualStartTimeUtc)
+                    val streamDurationSeconds = DateTimeUtil.calculateStreamDurationSeconds(actualStartTimeUtc, actualEndTimeUtc)
+
+                    // UTC日時をJST文字列に変換
+                    val publishedAtJst = snippet?.publishedAt?.toString()?.let { DateTimeUtil.toLocalDateTime(it) } ?: ""
+                    val scheduledStartTimeJst = scheduledStartTimeUtc?.let { DateTimeUtil.toLocalDateTime(it) }
+                    val actualStartTimeJst = actualStartTimeUtc?.let { DateTimeUtil.toLocalDateTime(it) }
+                    val actualEndTimeJst = actualEndTimeUtc.let { DateTimeUtil.toLocalDateTime(it) }
 
                     Video(
                         videoId = video.id,
                         title = snippet?.title ?: "",
-                        publishedAt = snippet?.publishedAt?.toString() ?: "",
-                        scheduledStartTime = scheduledStartTime,
-                        actualStartTime = actualStartTime,
-                        actualEndTime = actualEndTime,
-                        concurrentViewers = liveDetails.concurrentViewers?.toLong(),
+                        publishedAt = publishedAtJst,
+                        scheduledStartTime = scheduledStartTimeJst,
+                        actualStartTime = actualStartTimeJst,
+                        actualEndTime = actualEndTimeJst,
                         viewCount = stats?.viewCount?.toLong() ?: 0,
                         likeCount = stats?.likeCount?.toLong() ?: 0,
                         commentCount = stats?.commentCount?.toLong() ?: 0,
