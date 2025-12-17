@@ -60,22 +60,6 @@ if [ ! -z "$OUTPUT_PATH" ]; then
     watchtool_args="$watchtool_args --output $OUTPUT_PATH"
 fi
 
-if [ ! -z "$EVENT_TYPE" ]; then
-    watchtool_args="$watchtool_args --event-type $EVENT_TYPE"
-fi
-
-if [ ! -z "$LIMIT" ]; then
-    watchtool_args="$watchtool_args --limit $LIMIT"
-fi
-
-if [ ! -z "$START_DATE" ]; then
-    watchtool_args="$watchtool_args --start-date $START_DATE"
-fi
-
-if [ ! -z "$END_DATE" ]; then
-    watchtool_args="$watchtool_args --end-date $END_DATE"
-fi
-
 # WatchTool実行
 echo "$(date): 実行コマンド: java -jar /app/watchtool.jar $watchtool_args"
 
