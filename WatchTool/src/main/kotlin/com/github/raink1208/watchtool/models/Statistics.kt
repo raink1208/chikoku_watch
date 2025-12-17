@@ -22,5 +22,5 @@ data class Statistics(
 data class StreamReport(
     val channelInfo: Channel,
     val statistics: Statistics,
-    val streams: List<Video>
+    val streams: List<List<Video>>
 )

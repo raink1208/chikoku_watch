@@ -6,13 +6,13 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.raink1208.watchtool.api.ApiConfig
 import com.github.raink1208.watchtool.api.YouTubeApiClient
-import com.github.raink1208.watchtool.export.CsvExporter
 import com.github.raink1208.watchtool.export.JsonExporter
 import com.github.raink1208.watchtool.export.TextReportExporter
 import com.github.raink1208.watchtool.models.StreamReport
 import com.github.raink1208.watchtool.service.DelayAnalyzer
 import com.github.raink1208.watchtool.service.StatisticsCalculator
 import com.github.raink1208.watchtool.service.VideoFetcher
+import com.github.raink1208.watchtool.utils.ConfigLoader
 import com.github.raink1208.watchtool.utils.DateTimeUtil
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -30,24 +30,13 @@ class WatchToolCommand : CliktCommand(
     private val outputPath by option("-o", "--output", help = "出力ファイルパス")
         .default("output/result.json")
 
-    private val format by option("-f", "--format", help = "出力形式（json/csv/text）")
-        .choice("json", "csv", "text")
+    private val format by option("-f", "--format", help = "出力形式（json/text）")
+        .choice("json", "text")
         .default("json")
 
     private val limit by option("-l", "--limit", help = "取得する配信の最大数")
         .int()
         .default(Int.MAX_VALUE)
-
-    private val startDate by option("-s", "--start-date", help = "取得開始日（YYYY-MM-DD形式）")
-
-    private val endDate by option("-e", "--end-date", help = "取得終了日（YYYY-MM-DD形式）")
-
-    private val eventType by option("--event-type", help = "配信タイプ（completed/live/upcoming）")
-        .choice("completed", "live", "upcoming")
-        .default("completed")
-
-    private val verbose by option("-v", "--verbose", help = "詳細ログ出力")
-        .flag(default = false)
 
     override fun run() = runBlocking {
         try {
@@ -93,11 +82,19 @@ class WatchToolCommand : CliktCommand(
             val analyzer = DelayAnalyzer()
             val analysis = analyzer.analyze(videos)
 
+            // デビュー日から何年目かでビデオを分類
+            val debutDate = ConfigLoader.getDebutDate()
+            val videosByYear = if (debutDate != null) {
+                DateTimeUtil.groupVideosByYearsSinceDebut(videos, debutDate)
+            } else {
+                listOf(videos)  // デビュー日が設定されていない場合は全て1つのリストに
+            }
+
             // レポート作成
             val report = StreamReport(
                 channelInfo = channelInfo,
                 statistics = statistics,
-                streams = videos
+                streams = videosByYear
             )
 
             // 出力
@@ -105,10 +102,6 @@ class WatchToolCommand : CliktCommand(
             when (format) {
                 "json" -> {
                     val exporter = JsonExporter()
-                    exporter.export(report, outputPath)
-                }
-                "csv" -> {
-                    val exporter = CsvExporter()
                     exporter.export(report, outputPath)
                 }
                 "text" -> {
