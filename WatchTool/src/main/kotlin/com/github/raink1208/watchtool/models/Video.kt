@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Video(
     val videoId: String,
+    val channelId: String = "",
     val title: String,
     val publishedAt: String,
     val scheduledStartTime: String? = null,
@@ -14,5 +15,6 @@ data class Video(
     val likeCount: Long = 0,
     val commentCount: Long = 0,
     val delaySeconds: Long = 0,  // 遅刻時間（秒）
-    val streamDurationSeconds: Long = 0  // 配信時間（秒）
+    val streamDurationSeconds: Long = 0,  // 配信時間（秒）
+    val thumbnail: String? = null
 )

@@ -2,16 +2,11 @@ package com.github.raink1208.watchtool
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.*
-import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.raink1208.watchtool.api.ApiConfig
 import com.github.raink1208.watchtool.api.YouTubeApiClient
-import com.github.raink1208.watchtool.export.JsonExporter
-import com.github.raink1208.watchtool.export.TextReportExporter
-import com.github.raink1208.watchtool.models.StreamReport
-import com.github.raink1208.watchtool.service.DelayAnalyzer
-import com.github.raink1208.watchtool.service.StatisticsCalculator
-import com.github.raink1208.watchtool.service.VideoFetcher
+import com.github.raink1208.watchtool.export.AggregateExporter
+import com.github.raink1208.watchtool.service.AggregateService
 import com.github.raink1208.watchtool.utils.ConfigLoader
 import com.github.raink1208.watchtool.utils.DateTimeUtil
 import kotlinx.coroutines.runBlocking
@@ -20,19 +15,15 @@ import kotlin.system.exitProcess
 
 class WatchToolCommand : CliktCommand(
     name = "watchtool",
-    help = "YouTube配信遅刻分析ツール"
+    help = "YouTube配信集計ツール"
 ) {
     private val logger = LoggerFactory.getLogger(WatchToolCommand::class.java)
 
     private val channelId by option("-c", "--channel", help = "対象チャンネルID（必須）")
         .required()
 
-    private val outputPath by option("-o", "--output", help = "出力ファイルパス")
-        .default("output/result.json")
-
-    private val format by option("-f", "--format", help = "出力形式（json/text）")
-        .choice("json", "text")
-        .default("json")
+    private val outputPath by option("-o", "--output", help = "aggregate.json 出力先パス")
+        .default("output/aggregate.json")
 
     private val limit by option("-l", "--limit", help = "取得する配信の最大数")
         .int()
@@ -40,17 +31,25 @@ class WatchToolCommand : CliktCommand(
 
     override fun run() = runBlocking {
         try {
-            logger.info("YouTube配信分析ツールを開始します")
+            logger.info("YouTube配信集計ツールを開始します")
             logger.info("チャンネルID: $channelId")
-            logger.info("出力形式: $format")
             logger.info("出力先: $outputPath")
+
+            // config.json 読み込み
+            val appConfig = ConfigLoader.loadAppConfig()
+            logger.info(
+                "config.json 読み込み完了 - " +
+                    "external: ${appConfig.external.size}件, " +
+                    "sessions: ${appConfig.sessions.size}件, " +
+                    "overrides: ${appConfig.overrides.size}件"
+            )
 
             // APIクライアントの初期化
             val config = ApiConfig()
             val apiClient = YouTubeApiClient(config)
 
-            // チャンネル情報の取得
-            echo("チャンネル情報を取得中...")
+            // チャンネル情報の確認
+            echo("チャンネル情報を確認中...")
             val channelInfo = apiClient.getChannelInfo(channelId)
             if (channelInfo == null) {
                 echo("エラー: チャンネル情報を取得できませんでした", err = true)
@@ -58,72 +57,40 @@ class WatchToolCommand : CliktCommand(
             }
             echo("チャンネル名: ${channelInfo.name}")
 
-            // 動画の取得
-            echo("配信情報を取得中...")
-            val fetcher = VideoFetcher(apiClient)
-            val videos = fetcher.fetchAllVideos(
+            // 集計フロー実行
+            // 1. 自チャンネルの動画取得
+            // 2. external の動画取得
+            // 3. videoId => Video の Map 作成
+            // 4. overrides 適用
+            // 5. sessions 構築
+            // 6. 集計済みデータ生成（配信時間・遅刻時間・視聴数・高評価数）
+            echo("集計を実行中...")
+            val aggregateService = AggregateService(apiClient)
+            val aggregateReport = aggregateService.aggregate(
                 channelId = channelId,
+                appConfig = appConfig,
                 maxVideos = limit
             )
 
-            if (videos.isEmpty()) {
-                echo("警告: 配信が見つかりませんでした", err = true)
-                exitProcess(0)
-            }
-
-            echo("${videos.size}件の配信を取得しました")
-
-            // 統計計算
-            echo("統計を計算中...")
-            val calculator = StatisticsCalculator()
-            val statistics = calculator.calculate(videos)
-
-            // 詳細分析
-            val analyzer = DelayAnalyzer()
-            val analysis = analyzer.analyze(videos)
-
-            // デビュー日から何年目かでビデオを分類
-            val debutDate = ConfigLoader.getDebutDate()
-            val videosByYear = if (debutDate != null) {
-                DateTimeUtil.groupVideosByYearsSinceDebut(videos, debutDate)
-            } else {
-                listOf(videos)  // デビュー日が設定されていない場合は全て1つのリストに
-            }
-
-            // レポート作成
-            val report = StreamReport(
-                channelInfo = channelInfo,
-                statistics = statistics,
-                streams = videosByYear
-            )
-
-            // 出力
-            echo("結果を出力中...")
-            when (format) {
-                "json" -> {
-                    val exporter = JsonExporter()
-                    exporter.export(report, outputPath)
-                }
-                "text" -> {
-                    val exporter = TextReportExporter()
-                    exporter.export(report, outputPath, analysis)
-                }
-            }
+            // 7. aggregate.json 出力
+            echo("aggregate.json を出力中...")
+            val exporter = AggregateExporter()
+            exporter.export(aggregateReport, outputPath)
 
             echo("完了しました: $outputPath")
             echo()
-            echo("=== サマリー ===")
-            echo("総配信数: ${statistics.totalStreams}回")
-            echo("遅刻配信数: ${statistics.delayedStreams}回")
-            echo("遅刻率: ${String.format("%.2f", statistics.delayRate)}%")
-            if (statistics.delayedStreams > 0) {
-                echo("総遅刻時間: ${DateTimeUtil.formatDuration(statistics.totalDelaySeconds)}")
-                echo("平均遅刻時間: ${DateTimeUtil.formatDuration(statistics.averageDelaySeconds.toLong())}")
-            }
-            if (statistics.totalStreamDurationSeconds > 0) {
-                echo("総配信時間: ${DateTimeUtil.formatDuration(statistics.totalStreamDurationSeconds)}")
-                echo("平均配信時間: ${DateTimeUtil.formatDuration(statistics.averageStreamDurationSeconds.toLong())}")
-            }
+            echo("=== 集計結果サマリー ===")
+            val streams = aggregateReport.streams
+            echo("総配信数: ${streams.size}件 (セッション: ${streams.count { it.linked }}件 / スタンドアロン: ${streams.count { !it.linked }}件)")
+            val totalDuration = streams.sumOf { it.durationSeconds }
+            val totalDelay = streams.sumOf { it.delaySeconds }
+            val totalView = streams.sumOf { it.viewCount }
+            val totalLike = streams.sumOf { it.likeCount }
+            if (totalDuration > 0) echo("総配信時間  : ${DateTimeUtil.formatDuration(totalDuration)}")
+            if (totalDelay > 0)    echo("総遅刻時間  : ${DateTimeUtil.formatDuration(totalDelay)}")
+            echo("総視聴数    : $totalView")
+            echo("総高評価数  : $totalLike")
+            echo()
             echo("使用APIクォータ: ${apiClient.getUsedQuota()}ユニット")
 
         } catch (e: Exception) {

@@ -60,6 +60,12 @@ if [ ! -z "$OUTPUT_PATH" ]; then
     watchtool_args="$watchtool_args --output $OUTPUT_PATH"
 fi
 
+if [ ! -z "$DEBUT_DATE" ]; then
+    watchtool_args="$watchtool_args --debut-date $DEBUT_DATE"
+fi
+
+
+
 # WatchTool実行
 echo "$(date): 実行コマンド: java -jar /app/watchtool.jar $watchtool_args"
 

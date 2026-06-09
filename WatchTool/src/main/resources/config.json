@@ -1,0 +1,43 @@
+{
+  "external": [
+    "sPAz3y0XE9Y"
+  ],
+  "sessions": [
+    {
+      "id": "tsukapuu24",
+      "name": "つかぷー24",
+      "videos": [
+        "E5_3ojywJe0",
+        "sPAz3y0XE9Y"
+      ]
+    }
+  ],
+  "overrides": [
+    {
+      "videoId": "QdShmwG4q3A",
+      "title": "【 Supermarket Simulator 】経営、むずすぎだろ。【 領国つかさ / すぺしゃりて 】",
+      "publishedAt": "",
+      "scheduledStartTime": "2024-06-27 21:00:00",
+      "actualStartTime": "2024-06-28 04:44:00",
+      "actualEndTime": "2024-06-27 21:00:00",
+      "viewCount": 0,
+      "likeCount": 0,
+      "commentCount": 0,
+      "delaySeconds": 27840,
+      "streamDurationSeconds": 0,
+      "thumbnail": "https://i.ytimg.com/vi/8U7JTs_mrfg/sddefault.jpg"
+    },
+    {
+      "videoId": "S6lQiQDOOGc",
+      "delaySeconds": 180
+    },
+    {
+      "videoId": "k3sUyMQ4ftI",
+      "delaySeconds": 360
+    },
+    {
+      "videoId": "fxhMxLiRy3Q",
+      "delaySeconds": 360
+    }
+  ]
+}

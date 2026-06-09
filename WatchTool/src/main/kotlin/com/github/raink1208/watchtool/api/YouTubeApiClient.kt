@@ -149,6 +149,7 @@ class YouTubeApiClient(private val config: ApiConfig) {
 
                     Video(
                         videoId = video.id,
+                        channelId = snippet?.channelId ?: "",
                         title = snippet?.title ?: "",
                         publishedAt = publishedAtJst,
                         scheduledStartTime = scheduledStartTimeJst,
@@ -158,7 +159,8 @@ class YouTubeApiClient(private val config: ApiConfig) {
                         likeCount = stats?.likeCount?.toLong() ?: 0,
                         commentCount = stats?.commentCount?.toLong() ?: 0,
                         delaySeconds = delaySeconds,
-                        streamDurationSeconds = streamDurationSeconds
+                        streamDurationSeconds = streamDurationSeconds,
+                        thumbnail = "https://i.ytimg.com/vi/${video.id}/sddefault.jpg"
                     )
                 } catch (e: Exception) {
                     logger.warn("Failed to parse video ${video.id}: ${e.message}")
