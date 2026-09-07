@@ -52,17 +52,12 @@ if [ ! -z "$CHANNEL_ID" ]; then
     watchtool_args="$watchtool_args --channel $CHANNEL_ID"
 fi
 
-if [ ! -z "$OUTPUT_FORMAT" ]; then
-    watchtool_args="$watchtool_args --format $OUTPUT_FORMAT"
-fi
-
 if [ ! -z "$OUTPUT_PATH" ]; then
     watchtool_args="$watchtool_args --output $OUTPUT_PATH"
 fi
 
-if [ ! -z "$DEBUT_DATE" ]; then
-    watchtool_args="$watchtool_args --debut-date $DEBUT_DATE"
-fi
+# デビュー日（年度分割の基準）と external / sessions / overrides は
+# config/config.json で設定する（CLI オプションではない）
 
 
 

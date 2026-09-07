@@ -48,8 +48,6 @@ RUN chmod +x /app/run-integrated.sh /app/entrypoint.sh
 ENV CRON_SCHEDULE="0 4 * * *"
 ENV CHANNEL_ID=""
 ENV YOUTUBE_API_KEY=""
-ENV DEBUT_DATE="2024-01-13"
-ENV OUTPUT_FORMAT="json"
 ENV OUTPUT_PATH="/app/output/result.json"
 ENV CLOUDFLARE_ACCOUNT_ID=""
 ENV R2_ACCESS_KEY_ID=""

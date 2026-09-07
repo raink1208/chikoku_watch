@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppConfig(
+    /** デビュー日（YYYY-MM-DD）。年度分割の基準日。未設定なら分割しない */
+    val debutDate: String? = null,
     val external: List<String> = emptyList(),
     val sessions: List<SessionConfig> = emptyList(),
     val overrides: List<OverrideConfig> = emptyList()

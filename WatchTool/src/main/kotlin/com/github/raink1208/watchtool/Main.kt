@@ -22,8 +22,8 @@ class WatchToolCommand : CliktCommand(
     private val channelId by option("-c", "--channel", help = "対象チャンネルID（必須）")
         .required()
 
-    private val outputPath by option("-o", "--output", help = "aggregate.json 出力先パス")
-        .default("output/aggregate.json")
+    private val outputPath by option("-o", "--output", help = "result.json 出力先パス")
+        .default("output/result.json")
 
     private val limit by option("-l", "--limit", help = "取得する配信の最大数")
         .int()
@@ -39,6 +39,7 @@ class WatchToolCommand : CliktCommand(
             val appConfig = ConfigLoader.loadAppConfig()
             logger.info(
                 "config.json 読み込み完了 - " +
+                    "debutDate: ${appConfig.debutDate ?: "未設定"}, " +
                     "external: ${appConfig.external.size}件, " +
                     "sessions: ${appConfig.sessions.size}件, " +
                     "overrides: ${appConfig.overrides.size}件"
@@ -72,15 +73,15 @@ class WatchToolCommand : CliktCommand(
                 maxVideos = limit
             )
 
-            // 7. aggregate.json 出力
-            echo("aggregate.json を出力中...")
+            // 7. result.json 出力
+            echo("result.json を出力中...")
             val exporter = AggregateExporter()
             exporter.export(aggregateReport, outputPath)
 
             echo("完了しました: $outputPath")
             echo()
             echo("=== 集計結果サマリー ===")
-            val streams = aggregateReport.streams
+            val streams = aggregateReport.years.flatMap { it.streams } + aggregateReport.unknown
             echo("総配信数: ${streams.size}件 (セッション: ${streams.count { it.linked }}件 / スタンドアロン: ${streams.count { !it.linked }}件)")
             val totalDuration = streams.sumOf { it.durationSeconds }
             val totalDelay = streams.sumOf { it.delaySeconds }
@@ -90,6 +91,20 @@ class WatchToolCommand : CliktCommand(
             if (totalDelay > 0)    echo("総遅刻時間  : ${DateTimeUtil.formatDuration(totalDelay)}")
             echo("総視聴数    : $totalView")
             echo("総高評価数  : $totalLike")
+            echo()
+
+            // 年度別の内訳
+            echo("=== 年度別内訳 ===")
+            if (aggregateReport.debutDate != null) {
+                echo("デビュー日: ${aggregateReport.debutDate}")
+            }
+            aggregateReport.years.forEach { year ->
+                val period = if (year.startDate.isNotEmpty()) " (${year.startDate} 〜 ${year.endDate})" else ""
+                echo("${year.label}$period: ${year.streams.size}件")
+            }
+            if (aggregateReport.unknown.isNotEmpty()) {
+                echo("年度不明: ${aggregateReport.unknown.size}件")
+            }
             echo()
             echo("使用APIクォータ: ${apiClient.getUsedQuota()}ユニット")
 

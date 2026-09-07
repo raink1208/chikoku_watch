@@ -59,9 +59,5 @@ object ConfigLoader {
     fun getDelayThresholdMinutes(): Int {
         return properties.getProperty("delay.threshold.minutes")?.toIntOrNull() ?: 1
     }
-
-    fun getDebutDate(): String? {
-        return properties.getProperty("debut.date")
-    }
 }
 

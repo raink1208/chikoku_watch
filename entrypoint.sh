@@ -81,8 +81,10 @@ case "$1" in
         echo "  R2_SECRET_ACCESS_KEY     - R2シークレットキー（必須）"
         echo "  BUCKET_NAME         - R2バケット名（デフォルト: youtube-analysis-data）"
         echo "  REMOTE_PATH         - アップロード先パス（デフォルト: youtube-analysis/result.json）"
-        echo "  OUTPUT_FORMAT       - 出力形式（デフォルト: json）"
-        echo "  EVENT_TYPE          - 配信タイプ（completed/live/upcoming）"
+        echo "  OUTPUT_PATH         - 出力先パス（デフォルト: /app/output/result.json）"
+        echo ""
+        echo "デビュー日（年度分割の基準）・external・sessions・overrides は"
+        echo "/app/config/config.json で設定します。"
         exit 1
         ;;
 esac

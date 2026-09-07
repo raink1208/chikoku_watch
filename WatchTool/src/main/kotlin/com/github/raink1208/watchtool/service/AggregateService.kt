@@ -147,6 +147,7 @@ class AggregateService(private val apiClient: YouTubeApiClient) {
         val allStreams = (sessionStreams + standaloneStreams)
             .sortedWith(compareBy { it.scheduledStartTime })
 
-        return AggregateReport(streams = allStreams)
+        // 7. デビュー日からの経過年数で年度別にグループ化
+        return YearGrouper().group(allStreams, appConfig.debutDate)
     }
 }

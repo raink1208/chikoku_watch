@@ -1,4 +1,3 @@
 youtube.api.key=${YOUTUBE_API_KEY}
 youtube.api.quota.limit=10000
 delay.threshold.minutes=1
-debut.date=2024-01-01
